@@ -1,434 +1,691 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Birthday — Special</title>
-  <style>
-    :root{
-      --pink:#ff7ac8;
-      --soft-pink:#ffd1e8;
-      --hot-pink:#ff4db3;
-      --purple:#b36cff;
-      --gold:gold;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";overflow:hidden}
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>🎂 Chúc mừng sinh nhật 🎉</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    /* ===== Z-LAYERED CANVASES ===== */
-    canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block}
-    #cvMatrix{z-index:0}
-    #cvStars{z-index:1}
-    #cvParticles{z-index:2}
-    #cvFireworks{z-index:3}
+      html,
+      body {
+        height: 100%;
+        background: #000;
+        color: #fff;
+        font-family: Arial, Helvetica, sans-serif;
+        overflow: hidden;
+      }
 
-    /* ===== INTRO FORM ===== */
-    #intro{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.9);}
-    .intro-card{width:min(92vw,460px);padding:20px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));backdrop-filter:blur(6px);box-shadow:0 10px 40px rgba(255,122,200,.2);text-align:center}
-    .intro-title{font-size:clamp(20px,5vw,28px);margin:6px 0 14px;color:#fff;text-shadow:0 0 10px var(--soft-pink)}
-    .intro-img{width:120px;height:120px;border-radius:16px;background:radial-gradient(circle at 30% 30%, var(--soft-pink), transparent 60%);margin:0 auto 12px}
-    .row{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:6px}
-    #dob{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff;font-size:16px;outline:none}
-    #dob::placeholder{color:#ddd}
-    #go{padding:12px 18px;border:none;border-radius:12px;background:linear-gradient(90deg,var(--hot-pink),var(--purple));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(255,77,179,.35)}
-    .hint{font-size:12px;opacity:.8;margin-top:8px}
+      .screen {
+        display: none;
+        width: 100%;
+        height: 100svh;
+        opacity: 1;
+        transition: opacity 0.9s ease;
+      }
 
-    /* ===== TOP TITLE ===== */
-    #topTitle{position:fixed;top:4.5vh;left:50%;transform:translateX(-50%);z-index:5;font-size:clamp(28px,6vw,54px);font-weight:900;letter-spacing:.02em;color:#fff;text-align:center;text-shadow:0 0 20px #fff, 0 0 36px var(--soft-pink), 0 0 64px var(--hot-pink);display:none}
-    .shine{animation:shine 2.2s ease-in-out infinite alternate}
-    @keyframes shine{from{filter:drop-shadow(0 0 8px #fff)}to{filter:drop-shadow(0 0 20px var(--soft-pink)) drop-shadow(0 0 40px var(--hot-pink))}}
+      .active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
 
-    /* ===== CENTER HUD (for accessibility text fallback) ===== */
-    #centerHUD{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:4;pointer-events:none}
-    #centerText{font-size:clamp(48px,18vw,200px);font-weight:900;color:#fff;opacity:0;text-shadow:0 0 20px #fff, 0 0 40px var(--soft-pink), 0 0 80px var(--hot-pink)}
+      .fade-out {
+        opacity: 0 !important;
+      }
 
-    /* ===== 3D RING SLIDER ===== */
-    #ringWrap{position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);width:min(90vw,560px);height:min(90vw,560px);z-index:6;display:none}
-    #ring{position:absolute;inset:0;margin:auto;transform-style:preserve-3d}
-    .card{position:absolute;width:min(34vw,180px);height:min(34vw,180px);left:50%;top:50%;transform-style:preserve-3d;border-radius:18px;overflow:hidden;box-shadow:0 8px 22px rgba(255,255,255,.18)}
-    .card img{width:100%;height:100%;object-fit:cover;display:block}
-    .card::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 2px rgba(255,255,255,.15);border-radius:18px;pointer-events:none}
-    .card.active{transform:scale(1.12) translateZ(var(--z)) rotateY(var(--ry));z-index:10;box-shadow:0 10px 30px rgba(255,255,255,.5)}
+      /* ===== Nút nhạc ===== */
+      #musicToggle {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 9999;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.3s ease;
+        background: #eee;
+        color: #000;
+        font-weight: bold;
+      }
 
-    /* hint/message bubble */
-    #bubble{position:fixed;left:50%;bottom:3vh;transform:translateX(-50%);max-width:92vw;background:rgba(0,0,0,.6);padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 24px rgba(255,122,200,.25);font-size:clamp(13px,3.6vw,18px);display:none;z-index:7}
+      #musicToggle.active {
+        background: hotpink;
+        color: #fff;
+        box-shadow: 0 0 10px hotpink;
+      }
 
-    /* ===== MUSIC BUTTON ===== */
-    #musicBtn{position:fixed;top:10px;right:10px;z-index:11;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:8px 12px;backdrop-filter:blur(4px);cursor:pointer}
-    #musicBtn.active{background:linear-gradient(90deg,var(--hot-pink),var(--purple))}
+      /* ===== Màn 1 ===== */
+      #screen1 {
+        position: relative;
+        text-align: center;
+        flex-direction: column;
+      }
 
-    /* RESPONSIVE TWEAKS */
-    @media (max-width:480px){
-      .intro-card{padding:16px}
-      .intro-img{width:96px;height:96px}
-    }
-  </style>
-</head>
-<body>
-  <!-- BACKGROUND LAYERS -->
-  <canvas id="cvMatrix"></canvas>
-  <canvas id="cvStars"></canvas>
-  <canvas id="cvParticles"></canvas>
-  <canvas id="cvFireworks"></canvas>
+      .stars {
+        position: absolute;
+        inset: 0;
+        background: url("https://www.transparenttextures.com/patterns/stardust.png");
+        animation: twinkle 3s infinite alternate;
+        z-index: 0;
+      }
 
-  <!-- INTRO OVERLAY -->
-  <div id="intro">
-    <div class="intro-card">
-      <div class="intro-img"></div>
-      <div class="intro-title">Nhập ngày sinh (dd/mm)</div>
-      <div class="row">
-        <input id="dob" placeholder="ví dụ: 17/08" inputmode="numeric" autocomplete="off" />
-        <button id="go">Vào</button>
+      @keyframes twinkle {
+        from {
+          opacity: 0.5;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      .s1-container {
+        z-index: 2;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .s1-container input {
+        padding: 10px 20px;
+        border-radius: 20px;
+        border: none;
+        outline: none;
+        text-align: center;
+        font-size: 16px;
+        background: #222;
+        color: #fff;
+        box-shadow: 0 0 10px #ff69b4;
+      }
+
+      .s1-container button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 20px;
+        background: hotpink;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 0 15px hotpink;
+      }
+
+      #fallingWrap {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .falling {
+        position: absolute;
+        top: -50px;
+        font-size: 40px;
+        animation: fall linear infinite;
+      }
+
+      @keyframes fall {
+        to {
+          transform: translateY(110svh);
+        }
+      }
+
+      .medal {
+        z-index: 2;
+      }
+
+      /* ===== Màn 2 ===== */
+      #screen2 {
+        position: relative;
+      }
+
+      #matrix {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+      }
+
+      #countdown {
+        position: relative;
+        z-index: 10;
+        font-size: clamp(40px, 12vw, 80px);
+        font-weight: 700;
+        color: pink;
+        text-shadow: 0 0 20px #fff, 0 0 40px hotpink;
+        margin-bottom: 12px;
+      }
+
+      #message {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-size: clamp(26px, 8vw, 48px);
+        font-weight: 700;
+        color: pink;
+        text-shadow: 0 0 20px #fff, 0 0 40px hotpink;
+      }
+
+      #message .line1,
+      #message .line2 {
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+
+      #message .show {
+        opacity: 1;
+      }
+
+      #emLove {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 11;
+        font-weight: 600;
+        color: hotpink;
+        text-shadow: 0 0 28px rgba(255, 182, 193, 0.5);
+        font-size: clamp(10px, 10vw, 100px);
+        opacity: 0;
+        transition: opacity 0.25s;
+        white-space: nowrap;
+      }
+
+      #emLove.show {
+        opacity: 1;
+      }
+
+      #particleCanvas {
+        position: absolute;
+        inset: 0;
+        z-index: 12;
+        display: none;
+      }
+
+      /* ===== Màn 3 ===== */
+      :root {
+        --ring-size: min(58vw, 18svh);
+        --img-size: calc(var(--ring-size) * 0.38);
+        --tz: calc(var(--ring-size) * 0.85);
+      }
+
+      #fireworks {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .stage {
+        position: relative;
+        z-index: 1;
+        height: 100svh;
+        display: grid;
+        grid-template-rows: repeat(5, 20svh);
+      }
+
+      header {
+        grid-row: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-weight: 800;
+        font-size: clamp(22px, 6vw, 40px);
+        background: linear-gradient(270deg, hotpink, #ffd54a, #fff, hotpink);
+        background-size: 600% 600%;
+        -webkit-background-clip: text;
+        color: transparent;
+        animation: colorShift 5s ease infinite;
+      }
+
+      @keyframes colorShift {
+        0% {
+          background-position: 0% 50%;
+        }
+
+        50% {
+          background-position: 100% 50%;
+        }
+
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .ring-cell {
+        grid-row: 4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1200px;
+      }
+
+      .ring {
+        width: var(--ring-size);
+        height: var(--ring-size);
+        position: relative;
+        transform-style: preserve-3d;
+        animation: spin 18s linear infinite;
+      }
+
+      .ring.paused {
+        animation-play-state: paused;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotateY(0);
+        }
+
+        to {
+          transform: rotateY(360deg);
+        }
+      }
+
+      .card {
+        position: absolute;
+        width: var(--img-size);
+        height: var(--img-size);
+        left: calc((var(--ring-size)-var(--img-size)) / 2);
+        top: calc((var(--ring-size)-var(--img-size)) / 2);
+        border-radius: 16px;
+        overflow: hidden;
+        backface-visibility: hidden;
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(255, 105, 180, 0.9),
+          0 0 25px rgba(255, 255, 255, 0.6);
+      }
+
+      .card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.88);
+        padding: 16px;
+      }
+
+      .overlay.active {
+        display: flex;
+      }
+
+      .overlay__img {
+        max-width: 94vw;
+        max-height: 90svh;
+        border-radius: 16px;
+        box-shadow: 0 0 34px rgba(255, 255, 255, 0.85);
+      }
+
+      .overlay__cap {
+        margin-top: 10px;
+        font-size: clamp(14px, 3.6vw, 18px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Nhạc -->
+    <audio id="bgm" loop>
+      <source src="audio/HPBD.mp3" type="audio/mpeg" />
+    </audio>
+    <div id="musicToggle">🎵 Click Nhạc</div>
+
+    <!-- Màn 1 -->
+    <div class="screen active" id="screen1">
+      <div class="stars"></div>
+      <div id="fallingWrap"></div>
+      <div class="s1-container">
+        <img src="images/1.gif" class="medal" width="240" alt="medal" />
+        <input id="birthday" type="text" placeholder="❤ 2508 ❤" inputmode="numeric"/>
+        <button id="confirmBtn">🌸 Ngày đặc biệt của em ✨</button>
       </div>
-      <div class="hint">Mẹo: Chạm nút Vào để bật nhạc trên điện thoại 🎵</div>
     </div>
-  </div>
 
-  <!-- MUSIC CONTROL -->
-  <button id="musicBtn">🎵 Nhạc</button>
-  <audio id="bgm" preload="auto" loop>
-    <!-- Bạn có thể thay bằng file mp3 của bạn -->
-    <source src="audio/HPBD.mp3" type="audio/mpeg" />
-  </audio>
+    <!-- Màn 2 -->
+    <div class="screen" id="screen2">
+      <canvas id="matrix"></canvas>
+      <canvas id="particleCanvas"></canvas>
+      <div id="countdown"></div>
+      <div id="message">
+        <div class="line1"></div>
+        <div class="line2"></div>
+        <div id="emLove">💖Haa Anh💖</div>
+      </div>
+    </div>
 
-  <!-- CENTER HUD (for accessibility text fallback; particles render on canvas) -->
-  <div id="centerHUD"><div id="centerText"></div></div>
+    <!-- Màn 3 -->
+    <div class="screen" id="screen3">
+      <canvas id="fireworks"></canvas>
+      <div class="stage">
+        <header>🎉 HAPPY BIRTHDAY 🎉</header>
+        <div class="ring-cell">
+          <div class="ring" id="ring">
+            <div class="card" data-cap="Luôn vui vẻ, hạnh phúc ❤️">
+              <img src="images/ha1.jpg" />
+            </div>
+            <div class="card" data-cap="Thành công và may mắn 🍀">
+              <img src="images/ha2.jpg" />
+            </div>
+            <div class="card" data-cap="Sức khỏe dồi dào 💪">
+              <img src="images/ha3.jpg" />
+            </div>
+            <div class="card" data-cap="Ước mơ sớm thành hiện thực ✨">
+              <img src="images/ha4.jpg" />
+            </div>
+            <div class="card" data-cap="Yêu thương ngập tràn 💖">
+              <img src="images/ha5.jpg" />
+            </div>
+            <div class="card" data-cap="Hạnh phúc tràn đầy 🎉">
+              <img src="images/ha6.jpg" />
+            </div>
+            <div class="card" data-cap="Đi xe an toàn !🚗">
+              <img src="images/ha7.jpg" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="overlay" id="overlay">
+        <img class="overlay__img" id="overlayImg" alt="" />
+        <div class="overlay__cap" id="overlayCap"></div>
+      </div>
+    </div>
 
-  <!-- TOP TITLE shown after words -->
-  <div id="topTitle" class="shine">🎉 HAPPY BIRTHDAY 🎉</div>
-
-  <!-- 3D RING SLIDER -->
-  <div id="ringWrap">
-    <div id="ring"></div>
-  </div>
-  <div id="bubble"></div>
-
-  <script>
-  /******************* UTILS *******************/
-  const DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
-  const clamp = (v, mi, ma) => Math.max(mi, Math.min(ma, v));
-  const rand = (a,b)=> a + Math.random()*(b-a);
-
-  /******************* MATRIX (pink + white HAPPYBIRTHDAY rain) *******************/
-  const mCanvas = document.getElementById('cvMatrix');
-  const mCtx = mCanvas.getContext('2d');
-  function resizeMatrix(){ mCanvas.width = innerWidth*DPR; mCanvas.height = innerHeight*DPR; }
-  resizeMatrix();
-  let mFont = 16*DPR; let mCols = Math.floor(mCanvas.width / mFont);
-  let drops = new Array(mCols).fill(1);
-  const chars = 'HAPPYBIRTHDAY'.split('');
-  function drawMatrix(){
-    mCtx.fillStyle = 'rgba(0,0,0,0.06)';
-    mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
-    mCtx.font = `bold ${mFont}px Arial`;
-    for(let i=0;i<drops.length;i++){
-      mCtx.fillStyle = Math.random()>0.5? '#fff' : '#ffd1e8';
-      const ch = chars[(Math.random()*chars.length)|0];
-      mCtx.fillText(ch, i*mFont, drops[i]*mFont);
-      if(drops[i]*mFont > mCanvas.height && Math.random()>0.975) drops[i]=0;
-      drops[i]++;
-    }
-    requestAnimationFrame(drawMatrix);
-  }
-  requestAnimationFrame(drawMatrix);
-
-  /******************* SHOOTING STARS (dreamy pink/purple) *******************/
-  const sCanvas = document.getElementById('cvStars');
-  const sCtx = sCanvas.getContext('2d');
-  function resizeStars(){ sCanvas.width = innerWidth*DPR; sCanvas.height = innerHeight*DPR; }
-  resizeStars();
-  class ShootingStar{
-    constructor(){ this.reset(true); }
-    reset(init=false){
-      this.x = rand(0, sCanvas.width);
-      this.y = rand(0, sCanvas.height*0.5);
-      this.len = rand(120*DPR, 240*DPR);
-      this.speed = rand(0.4, 1.0); // slow
-      this.size = rand(1.2*DPR, 2.2*DPR);
-      if(!init){ this.x = sCanvas.width + this.len; this.y = rand(0, sCanvas.height*0.5); }
-    }
-    step(){
-      this.x -= this.speed*6*DPR; // move left
-      this.y += this.speed*2.8*DPR; // move down a bit
-      if(this.x < -this.len || this.y > sCanvas.height + this.len) this.reset();
-    }
-    draw(){
-      const gx = this.x, gy = this.y, tx = this.x - this.len, ty = this.y + this.len;
-      const grad = sCtx.createLinearGradient(gx,gy,tx,ty);
-      grad.addColorStop(0, 'rgba(255,160,220,1)');
-      grad.addColorStop(1, 'rgba(180,120,255,0)');
-      sCtx.lineWidth = this.size; sCtx.strokeStyle = grad;
-      sCtx.beginPath(); sCtx.moveTo(gx,gy); sCtx.lineTo(tx,ty); sCtx.stroke();
-      // bright head
-      sCtx.fillStyle = 'rgba(255,200,255,.9)';
-      sCtx.beginPath(); sCtx.arc(gx,gy,this.size*0.9,0,Math.PI*2); sCtx.fill();
-    }
-  }
-  const stars = Array.from({length:8}, ()=> new ShootingStar());
-  function loopStars(){
-    sCtx.clearRect(0,0,sCanvas.width,sCanvas.height);
-    for(const st of stars){ st.step(); st.draw(); }
-    requestAnimationFrame(loopStars);
-  }
-  requestAnimationFrame(loopStars);
-
-  /******************* PARTICLE TEXT (countdown + words) *******************/
-  const pCanvas = document.getElementById('cvParticles');
-  const pCtx = pCanvas.getContext('2d');
-  function resizeParticles(){ pCanvas.width = innerWidth*DPR; pCanvas.height = innerHeight*DPR; }
-  resizeParticles();
-  const centerText = document.getElementById('centerText');
-
-  let particles = [];
-  const pointGap = Math.round(clamp(6*DPR, 4, 10));
-
-  function getPointsForText(txt, sizePx){
-    const off = document.createElement('canvas');
-    off.width = pCanvas.width; off.height = pCanvas.height;
-    const o = off.getContext('2d');
-    o.clearRect(0,0,off.width,off.height);
-    o.fillStyle = '#fff';
-    o.font = `900 ${sizePx}px Arial`;
-    o.textAlign = 'center'; o.textBaseline = 'middle';
-    o.fillText(txt, off.width/2, off.height/2);
-    const data = o.getImageData(0,0,off.width,off.height).data;
-    const pts = [];
-    for(let y=0;y<off.height;y+=pointGap){
-      for(let x=0;x<off.width;x+=pointGap){
-        const idx = (y*off.width + x)*4 + 3; // alpha channel
-        if(data[idx] > 150){ pts.push({x,y}); }
-      }
-    }
-    return pts;
-  }
-
-  function makeParticles(targetPts){
-    const arr = [];
-    for(const t of targetPts){
-      arr.push({
-        x: rand(0,pCanvas.width), y: rand(0,pCanvas.height),
-        vx: 0, vy: 0, tx: t.x, ty: t.y, a: 1,
+    <script>
+      /* ===== Nhạc ===== */
+      const bgm = document.getElementById("bgm");
+      const musicToggle = document.getElementById("musicToggle");
+      let isPlaying = false;
+      musicToggle.addEventListener("click", () => {
+        if (isPlaying) {
+          bgm.pause();
+          musicToggle.classList.remove("active");
+          isPlaying = false;
+        } else {
+          bgm.play().catch(() => {});
+          musicToggle.classList.add("active");
+          isPlaying = true;
+        }
       });
-    }
-    return arr;
-  }
 
-  function animateToText(txt, size, assembleMs, holdMs){
-    return new Promise(resolve=>{
-      const pts = getPointsForText(txt, size);
-      particles = makeParticles(pts);
-      let t0 = performance.now();
-      const attract = 0.12; // pull strength
-      const damp = 0.86;    // friction
+      /* ===== Màn 1 ===== */
+      function createFallingIcon() {
+        const wrap = document.getElementById("fallingWrap");
+        const icons = ["🎂", "❤️", "🍀", "🎉"];
+        const el = document.createElement("div");
+        el.className = "falling";
+        el.textContent = icons[(Math.random() * icons.length) | 0];
+        el.style.left = Math.random() * 100 + "vw";
+        el.style.animationDuration = 3 + Math.random() * 5 + "s";
+        wrap.appendChild(el);
+        setTimeout(() => el.remove(), 8000);
+      }
+      let fallingInterval = setInterval(createFallingIcon, 700);
+      document.getElementById("confirmBtn").addEventListener("click", () => {
+        if (document.getElementById("birthday").value.trim() === "2508") {
+          clearInterval(fallingInterval);
+          document.getElementById("screen1").classList.remove("active");
+          document.getElementById("screen2").classList.add("active");
+          startScreen2();
+          bgm.play().catch(() => {});
+          musicToggle.classList.add("active");
+          isPlaying = true;
+        } else alert("Bạn không nhớ gì hết !");
+      });
 
-      function frame(now){
-        const elapsed = now - t0;
-        pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-        // draw faint glow background to pop on black
-        for(const p of particles){
-          const dx = p.tx - p.x, dy = p.ty - p.y;
-          p.vx += dx*attract*0.016; // normalized by ~60fps
-          p.vy += dy*attract*0.016;
-          p.vx *= damp; p.vy *= damp;
-          p.x += p.vx;  p.y += p.vy;
-          // particle
-          pCtx.fillStyle = 'rgba(255,182,219,0.95)';
-          pCtx.fillRect(p.x, p.y, Math.max(1,DPR), Math.max(1,DPR));
+      /* ===== Matrix HAPPY BIRTHDAY (màn 2) ===== */
+      const matrixCanvas = document.getElementById("matrix");
+      const matrixCtx = matrixCanvas.getContext("2d");
+      let matrixCols = [];
+      let matrixFontSize = 14;
+      function resizeMatrix() {
+        matrixCanvas.width = innerWidth;
+        matrixCanvas.height = innerHeight;
+        matrixFontSize = Math.max(12, Math.round(innerWidth / 80));
+        const cols = Math.floor(matrixCanvas.width / matrixFontSize);
+        matrixCols = new Array(cols).fill(1);
+      }
+      function drawMatrix() {
+        matrixCtx.fillStyle = "rgba(0,0,0,0.08)";
+        matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+        matrixCtx.font = `${matrixFontSize}px monospace`;
+        const letters = "HAPPY BIRTHDAY";
+        for (let i = 0; i < matrixCols.length; i++) {
+          const ch = letters.charAt(Math.floor(Math.random() * letters.length));
+          matrixCtx.fillStyle = Math.random() > 0.5 ? "#fff" : "hotpink";
+          matrixCtx.fillText(
+            ch,
+            i * matrixFontSize,
+            matrixCols[i] * matrixFontSize
+          );
+          if (
+            matrixCols[i] * matrixFontSize > matrixCanvas.height &&
+            Math.random() > 0.975
+          )
+            matrixCols[i] = 0;
+          matrixCols[i]++;
         }
-        if(elapsed < assembleMs + holdMs){
-          requestAnimationFrame(frame);
-        }else{
-          resolve();
+      }
+
+      /* ===== Countdown + HAA ANH ===== */
+      function startScreen2() {
+        let n = 3;
+        const c = document.getElementById("countdown");
+        const line1 = document.querySelector(".line1");
+        const line2 = document.querySelector(".line2");
+        const emLove = document.getElementById("emLove");
+        resizeMatrix();
+        let matrixInterval = setInterval(drawMatrix, 70); // chạy chậm hơn
+        (function run() {
+          if (n > 0) {
+            c.textContent = n;
+            c.style.opacity = "1";
+            setTimeout(() => {
+              c.style.opacity = "0";
+              n--;
+              setTimeout(run, 1000);
+            }, 800);
+          } else {
+            c.style.display = "none";
+            line1.textContent = "CHÚC MỪNG";
+            line1.classList.add("show");
+            setTimeout(() => {
+              line2.textContent = "SINH NHẬT";
+              line2.classList.add("show");
+            }, 1200);
+            setTimeout(() => {
+              line1.classList.remove("show");
+              line2.classList.remove("show");
+              emLove.classList.add("show");
+              setTimeout(() => {
+                heartParticle(() => {
+                  clearInterval(matrixInterval);
+                  document.getElementById("screen2").classList.add("fade-out");
+                  setTimeout(() => {
+                    document
+                      .getElementById("screen2")
+                      .classList.remove("active", "fade-out");
+                    document.getElementById("screen3").classList.add("active");
+                    startScreen3();
+                  }, 900);
+                });
+              }, 2000);
+            }, 3400);
+          }
+        })();
+      }
+
+      /* ===== Particle tim ===== */
+      function heartParticle(done) {
+        const pcv = document.getElementById("particleCanvas");
+        const ctx = pcv.getContext("2d");
+        pcv.style.display = "block";
+        pcv.width = innerWidth;
+        pcv.height = innerHeight;
+        const hearts = [];
+        for (let i = 0; i < 120; i++) {
+          hearts.push({
+            x: innerWidth / 2,
+            y: innerHeight / 2,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 1) * 5,
+            life: 1,
+          });
         }
-      }
-      requestAnimationFrame(frame);
-    });
-  }
-
-  function explodeParticles(ms=700){
-    return new Promise(resolve=>{
-      // give random velocities
-      for(const p of particles){
-        const ang = Math.random()*Math.PI*2; const sp = rand(1, 5)*DPR;
-        p.vx = Math.cos(ang)*sp; p.vy = Math.sin(ang)*sp; p.a = 1;
-      }
-      const gravity = 0.05*DPR; const fade = 0.02;
-      let t0 = performance.now();
-      function frame(now){
-        pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-        for(const p of particles){
-          p.vy += gravity;
-          p.x += p.vx; p.y += p.vy; p.a -= fade;
-          if(p.a<0) p.a = 0;
-          pCtx.fillStyle = `rgba(255,150,220,${p.a})`;
-          pCtx.fillRect(p.x,p.y, Math.max(1,DPR), Math.max(1,DPR));
+        function drawHeart(x, y, s) {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.scale(s, s);
+          ctx.beginPath();
+          ctx.moveTo(0, -2);
+          ctx.bezierCurveTo(2, -4, 4, -2, 0, 2);
+          ctx.bezierCurveTo(-4, -2, -2, -4, 0, -2);
+          ctx.fillStyle = "rgba(255,105,180,0.8)";
+          ctx.fill();
+          ctx.restore();
         }
-        if(now - t0 < ms){ requestAnimationFrame(frame); }
-        else { pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); resolve(); }
+        function tick() {
+          ctx.fillStyle = "rgba(0,0,0,0.2)";
+          ctx.fillRect(0, 0, pcv.width, pcv.height);
+          hearts.forEach((h) => {
+            h.x += h.vx;
+            h.y += h.vy;
+            h.vy += 0.05;
+            h.life -= 0.01;
+            drawHeart(h.x, h.y, Math.max(h.life * 0.5, 0.1));
+          });
+          if (hearts.some((h) => h.life > 0)) requestAnimationFrame(tick);
+          else {
+            pcv.style.display = "none";
+            done();
+          }
+        }
+        tick();
       }
-      requestAnimationFrame(frame);
-    });
-  }
 
-  async function runSequence(){
-    const numbers = ['3','2','1'];
-    for(const n of numbers){
-      centerText.style.opacity = 1; centerText.textContent = n;
-      await animateToText(n, Math.round(Math.min(pCanvas.width,pCanvas.height)*0.28), 700, 300);
-      await explodeParticles(600);
-    }
-    centerText.style.opacity = 0;
-    const words = ['Chúc','Mừng','Sinh','Nhật','Haa','Anh'];
-    for(const w of words){
-      await animateToText(w, Math.round(Math.min(pCanvas.width,pCanvas.height)*0.16), 800, 700); // ~1.5s total
-      await explodeParticles(700);
-    }
-    // After done → show title + fireworks + ring
-    document.getElementById('topTitle').style.display = 'block';
-    startFireworks();
-    showRing();
-  }
+      /* ===== Fireworks (màn 3) ===== */
+      function startScreen3() {
+        const fw = document.getElementById("fireworks");
+        const ctx = fw.getContext("2d");
+        fw.width = innerWidth;
+        fw.height = innerHeight;
+        const particles = [];
+        function Firework() {
+          this.x = Math.random() * fw.width;
+          this.y = fw.height;
+          this.targetY = (Math.random() * fw.height) / 2;
+          this.vy = -Math.random() * 3 - 4;
+          this.color = `hsl(${Math.random() * 360},100%,70%)`;
+          this.exploded = false;
+        }
+        Firework.prototype.update = function () {
+          if (!this.exploded) {
+            this.y += this.vy;
+            if (this.y <= this.targetY) {
+              this.exploded = true;
+              for (let i = 0; i < 50; i++) {
+                particles.push({
+                  x: this.x,
+                  y: this.y,
+                  vx: (Math.random() - 0.5) * 6,
+                  vy: (Math.random() - 0.5) * 6,
+                  life: 100,
+                  color: this.color,
+                });
+              }
+            }
+          }
+        };
+        function animate() {
+          ctx.fillStyle = "rgba(0,0,0,0.2)";
+          ctx.fillRect(0, 0, fw.width, fw.height);
+          if (Math.random() < 0.05) particles.push(new Firework());
+          for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            if (p.update) {
+              p.update();
+              if (!p.exploded)
+                (ctx.fillStyle = p.color), ctx.fillRect(p.x, p.y, 2, 2);
+            } else {
+              p.x += p.vx;
+              p.y += p.vy;
+              p.vy += 0.05;
+              p.life--;
+              ctx.fillStyle = p.color;
+              ctx.fillRect(p.x, p.y, 2, 2);
+              if (p.life <= 0) particles.splice(i, 1);
+            }
+          }
+          requestAnimationFrame(animate);
+        }
+        animate();
 
-  /******************* FIREWORKS *******************/
-  const fCanvas = document.getElementById('cvFireworks');
-  const fCtx = fCanvas.getContext('2d');
-  function resizeFireworks(){ fCanvas.width = innerWidth*DPR; fCanvas.height = innerHeight*DPR; }
-  resizeFireworks();
-  let fwParticles = [];
-  function spawnBurst(x,y,colors){
-    const count = 80;
-    for(let i=0;i<count;i++){
-      const ang = Math.random()*Math.PI*2; const sp = rand(1.5,5)*DPR;
-      fwParticles.push({x,y,vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, a:1, r:rand(1,2.4)*DPR, c:colors[(Math.random()*colors.length)|0]});
-    }
-  }
-  let fwRunning=false; let lastFW=0;
-  function fwLoop(ts){
-    fCtx.fillStyle = 'rgba(0,0,0,0.2)'; fCtx.fillRect(0,0,fCanvas.width,fCanvas.height);
-    for(let i=fwParticles.length-1;i>=0;i--){
-      const p = fwParticles[i];
-      p.vy += 0.02*DPR; p.vx *= 0.992; p.vy *= 0.992; p.a -= 0.009;
-      p.x += p.vx; p.y += p.vy;
-      if(p.a<=0){ fwParticles.splice(i,1); continue; }
-      fCtx.globalCompositeOperation='lighter';
-      fCtx.fillStyle = p.c.replace('ALPHA', p.a.toFixed(3));
-      fCtx.beginPath(); fCtx.arc(p.x,p.y,p.r,0,Math.PI*2); fCtx.fill();
-      fCtx.globalCompositeOperation='source-over';
-    }
-    if(fwRunning){
-      if(ts - lastFW > 400){ // spawn periodically
-        lastFW = ts;
-        spawnBurst(rand(fCanvas.width*0.15,fCanvas.width*0.85), rand(fCanvas.height*0.15,fCanvas.height*0.6), [
-          'rgba(255,200,255,ALPHA)', 'rgba(255,150,220,ALPHA)', 'rgba(180,120,255,ALPHA)', 'rgba(255,255,255,ALPHA)'
-        ]);
+        /* setup ring */
+        const ring = document.getElementById("ring");
+        const cards = Array.from(ring.querySelectorAll(".card"));
+        const step = 360 / cards.length;
+        cards.forEach(
+          (c, i) =>
+            (c.style.transform = `rotateY(${
+              i * step
+            }deg) translateZ(var(--tz))`)
+        );
+        const overlay = document.getElementById("overlay"),
+          ovImg = document.getElementById("overlayImg"),
+          ovCap = document.getElementById("overlayCap");
+        cards.forEach((card) => {
+          card.addEventListener("click", () => {
+            ovImg.src = card.querySelector("img").src;
+            ovCap.textContent = card.dataset.cap || "";
+            overlay.classList.add("active");
+            ring.classList.add("paused");
+          });
+        });
+        overlay.addEventListener("click", () => {
+          overlay.classList.remove("active");
+          ring.classList.remove("paused");
+        });
       }
-      requestAnimationFrame(fwLoop);
-    }
-  }
-  function startFireworks(){ if(!fwRunning){ fwRunning=true; requestAnimationFrame(fwLoop);} }
 
-  /******************* RING SLIDER (7 images) *******************/
-  const ringWrap = document.getElementById('ringWrap');
-  const ring = document.getElementById('ring');
-  const bubble = document.getElementById('bubble');
-  let angle = 0; let autoSpin = true; let lastT = 0; let radius = 260; // will update after layout
+      // ===== Random text cute cho nút màn 1 =====
+      const btnTexts = [
+        "🌸 Haa Anh dễ thương ✨",
+        "🎂 Haa Anh xinh đẹp 💕",
+        "💖 Haa Anh cute 🥰",
+        "🌈 Haa Anh ơi ✨",
+        "🍬 Click đi Haa Anh ngọt ngào 🍭",
+        "🎁 Happy B-Day Haa Anh iu 💝",
+      ];
 
-  const slides = [
-    {src:'images/1.gif', msg:'Chúc mừng sinh nhật! 🎂'},
-    {src:'images/2.jpg', msg:'Luôn vui vẻ, hạnh phúc ❤️'},
-    {src:'images/3.jpg', msg:'Thành công và may mắn 🍀'},
-    {src:'images/4.jpg', msg:'Sức khỏe dồi dào 💪'},
-    {src:'images/5.jpg', msg:'Ước mơ sớm thành hiện thực ✨'},
-    {src:'images/6.jpg', msg:'Yêu thương ngập tràn 💖'},
-    {src:'images/7.jpg', msg:'Một năm tuyệt vời phía trước 🚀'}
-  ];
-
-  function buildRing(){
-    ring.innerHTML = '';
-    const rect = ringWrap.getBoundingClientRect();
-    const size = Math.min(rect.width, rect.height);
-    radius = size * 0.45; // translateZ
-    const imgSize = Math.min(size*0.34, 200);
-
-    const step = 360 / slides.length;
-    slides.forEach((it, idx)=>{
-      const card = document.createElement('div');
-      card.className = 'card';
-      const img = document.createElement('img'); img.src = it.src; img.alt = `img-${idx+1}`; card.appendChild(img);
-      // positioning via CSS transform
-      const a = step*idx;
-      card.style.transform = `translate(-50%,-50%) rotateY(${a}deg) translateZ(${radius}px)`;
-      card.style.setProperty('--z', radius+'px');
-      card.style.setProperty('--ry', a+'deg');
-      card.style.width = card.style.height = imgSize+'px';
-
-      const showMsg = ()=>{ bubble.textContent = it.msg; bubble.style.display='block'; card.classList.add('active'); };
-      const hideMsg = ()=>{ bubble.style.display='none'; card.classList.remove('active'); };
-      card.addEventListener('mouseenter', showMsg);
-      card.addEventListener('mouseleave', hideMsg);
-      card.addEventListener('click', ()=>{ if(bubble.style.display==='block') hideMsg(); else showMsg(); });
-      card.addEventListener('touchstart', (e)=>{ e.stopPropagation(); showMsg(); }, {passive:true});
-
-      ring.appendChild(card);
-    });
-  }
-
-  function spinLoop(ts){
-    if(autoSpin){
-      const dt = lastT? (ts-lastT)/1000 : 0; // seconds
-      angle += dt * 8; // degrees per second (slow)
-      ring.style.transform = `rotateY(${angle}deg)`;
-      lastT = ts;
-    }
-    requestAnimationFrame(spinLoop);
-  }
-
-  function enableDrag(){
-    let dragging=false, startX=0, startAngle=0;
-    const onDown = (x)=>{ dragging=true; autoSpin=false; startX=x; startAngle=angle; bubble.style.display='none'; };
-    const onMove = (x)=>{ if(!dragging) return; const dx = x-startX; angle = startAngle + dx*0.3; ring.style.transform = `rotateY(${angle}deg)`; };
-    const onUp = ()=>{ dragging=false; autoSpin=true; };
-    ringWrap.addEventListener('mousedown', e=>onDown(e.clientX));
-    window.addEventListener('mousemove', e=>onMove(e.clientX));
-    window.addEventListener('mouseup', onUp);
-    ringWrap.addEventListener('touchstart', e=>onDown(e.touches[0].clientX), {passive:true});
-    window.addEventListener('touchmove', e=>onMove(e.touches[0].clientX), {passive:true});
-    window.addEventListener('touchend', onUp);
-  }
-
-  function showRing(){ ringWrap.style.display='block'; buildRing(); requestAnimationFrame(spinLoop); enableDrag(); }
-
-  /******************* INTRO + MUSIC *******************/
-  const BIRTHDAY = '17/08'; // <-- chỉnh ngày sinh ở đây (định dạng dd/mm)
-  const intro = document.getElementById('intro');
-  const goBtn = document.getElementById('go');
-  const dob = document.getElementById('dob');
-  const musicBtn = document.getElementById('musicBtn');
-  const bgm = document.getElementById('bgm');
-  let musicOn = false;
-
-  function playMusic(){ bgm.play().then(()=>{ musicOn=true; musicBtn.classList.add('active'); }).catch(()=>{}); }
-  musicBtn.addEventListener('click', ()=>{ if(musicOn){ bgm.pause(); musicOn=false; musicBtn.classList.remove('active'); } else { playMusic(); } });
-
-  goBtn.addEventListener('click', ()=>{
-    const v = (dob.value||'').trim();
-    if(v === BIRTHDAY){
-      intro.style.display='none';
-      playMusic();
-      runSequence();
-    } else {
-      alert('Sai ngày sinh rồi, thử lại nhé!');
-    }
-  });
-
-  /******************* RESIZE HANDLERS *******************/
-  function handleResize(){
-    resizeMatrix(); mFont = 16*DPR; mCols = Math.floor(mCanvas.width/mFont); drops = new Array(mCols).fill(1);
-    resizeStars(); resizeParticles(); resizeFireworks();
-    if(ringWrap.style.display==='block') buildRing();
-  }
-  window.addEventListener('resize', handleResize);
-  window.addEventListener('orientationchange', handleResize);
-  </script>
-</body>
+      const confirmBtn = document.getElementById("confirmBtn");
+      confirmBtn.textContent =
+        btnTexts[Math.floor(Math.random() * btnTexts.length)];
+    </script>
+  </body>
 </html>
